@@ -2,7 +2,7 @@ Require Import Strings.String.
 Local Open Scope string_scope. 
 Local Open Scope list_scope.
 Scheme Equality for string.
-
+Require Export Bool.
 Definition Var:= string.
 Check "x".
 
@@ -52,6 +52,7 @@ Check "x".
 Inductive BExp :=
 | true 
 | false
+| bequal : AExp -> AExp -> BExp
 | blessthan : AExp -> AExp -> BExp
 | bnot : BExp -> BExp
 | band : BExp -> BExp -> BExp
@@ -64,7 +65,7 @@ Notation "! A" := (bnot A) (at level 52).
 Notation "A &&' B" := (band A B) (at level 53).
 Notation "A ||' B" := (bor A B) (at level 54).
 Notation "A \\ B " := (bxor A B) (at level 54).
-
+Notation "A ==' B" := (bequal A B) (at level 53).
 Inductive Instructiune :=
 | decl_nat : string -> Instructiune
 | atribuire_nat : string -> AExp -> Instructiune
@@ -73,7 +74,6 @@ Inductive Instructiune :=
 | incrementare : string -> AExp -> Instructiune (*sintaxa incrementare*)
 | decrementare : string -> AExp -> Instructiune (*sintaxa decrementare*)
 | secventa : Instructiune -> Instructiune -> Instructiune
-| switch_case : Var -> Instructiune -> Instructiune (*incercare de sintaxa*)
 | while : BExp -> Instructiune -> Instructiune
 | ifthen : BExp -> Instructiune -> Instructiune
 | ifthenelse : BExp -> Instructiune -> Instructiune -> Instructiune
@@ -85,7 +85,6 @@ Inductive Instructiune :=
 
 Notation "break()' " := (break) (at level 50).
 Notation "S1 ;; S2" := (secventa S1 S2) (at level 90).
-Notation "'if' A 'then' B 'else' C" := (ifthenelse A B C) (at level 65).
 Notation "<nat> X" := (decl_nat X) (at level 60).
 Notation "<bool> X" := (decl_bool X) (at level 60).
 Notation "X =n A" := (atribuire_nat X A) (at level 60).
@@ -95,7 +94,18 @@ Notation "X --" := (decrementare X 1) (at level 60).
 Notation "'fors' ( A , B , C ) { S }" := (A ;; while B ( S ;; C )) (at level 97).
 Notation " // A // " := (comment A) (at level 99).
 Notation "f( X ) {{ S }} " := (body_functie X S) (at level 90).
-Notation "'switch' X { S }" := (switch_case X S) (at level 59).
+Notation " A ? B ~ C" := (ifthenelse A B C) (at level 65). (*sintaxa operator "?"*)
+Notation "'switch'  'case' ( A ) ( B ) ( 'case' ( C )  ( D ) 'default' ( E ))" := (ifthenelse A B (ifthenelse C D E)) (at level 66).
+(*sintaxa switch*)
+(* switch(x) 
+  case 1: x++
+  case 2: x--
+  default: x=0 
+ar putea fi scrisa cu ajutorul a doua ifthenelse-uri: 
+if (x==1) then x++ 
+  else if (x==2) then x--
+        else x=0*)
+
 
 (*Verificari*)
 Check <nat> "a".
@@ -108,13 +118,33 @@ Definition for_check :=
 fors ( "i" =n 1 , "i" <=' 10 , "i" =n "i" +' 1 ) {<nat> "x"}.
 Check for_check.
 
+Definition op_conditional_check :=
+<nat> "x" ;;
+("x"=='3) ? ("x"++) ~ ("x"--).
+Check op_conditional_check.
+
+Definition switch_check := 
+switch 
+ case ("x" ==' 1)  ( "x"++ ) 
+( case ("x" =='2)  ( "x"-- ) 
+     default ( "x" =n 0 )). 
+Check switch_check.
+
 Definition limbaj1 :=
 <nat> "a" ;;
 <nat> "b" ;;
 <nat> "c" ;; // "exemplu de comentariu" // ;;
 "c" =n "a" +' "b" ;;
 f("nume_functie") {{ <nat> "x" ;; "x" =n 3 }};;
-break()'.
+"c" ++ ;;
+break()' ;;
+<nat> "i" ;;
+while ("i" <=' 6) 
+        ("sum" =n "sum" +' "i" ;;
+           "i" =n "i" +' 1) ;;
+<nat> "p" ;;
+ifthenelse ("p" <=' "i") ("p" =n 5)
+         ("p" =n 4).
 
 Compute limbaj1.
 
