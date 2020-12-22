@@ -66,6 +66,7 @@ Notation "A &&' B" := (band A B) (at level 53).
 Notation "A ||' B" := (bor A B) (at level 54).
 Notation "A \\ B " := (bxor A B) (at level 54).
 Notation "A ==' B" := (bequal A B) (at level 53).
+
 Inductive Instructiune :=
 | decl_nat : string -> Instructiune
 | atribuire_nat : string -> AExp -> Instructiune
@@ -130,18 +131,24 @@ switch
      default ( "x" =n 0 )). 
 Check switch_check.
 
+Definition functie_check :=
+f("nume_functie") {{ <nat> "x" ;; "x" =n 3 }}.
+Check functie_check.
+
+Definition while_check :=
+while ("i" <=' 6) 
+        ("sum" =n "sum" +' "i" ;;
+           "i" =n "i" +' 1).
+Check while_check.
+
 Definition limbaj1 :=
 <nat> "a" ;;
 <nat> "b" ;;
 <nat> "c" ;; // "exemplu de comentariu" // ;;
 "c" =n "a" +' "b" ;;
-f("nume_functie") {{ <nat> "x" ;; "x" =n 3 }};;
 "c" ++ ;;
 break()' ;;
 <nat> "i" ;;
-while ("i" <=' 6) 
-        ("sum" =n "sum" +' "i" ;;
-           "i" =n "i" +' 1) ;;
 <nat> "p" ;;
 ifthenelse ("p" <=' "i") ("p" =n 5)
          ("p" =n 4).
