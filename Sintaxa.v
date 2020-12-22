@@ -79,7 +79,7 @@ Inductive Instructiune :=
 | ifthen : BExp -> Instructiune -> Instructiune
 | ifthenelse : BExp -> Instructiune -> Instructiune -> Instructiune
 | comment : string -> Instructiune (*sintaxa pentru comentarii*)
-| break : Instructiune
+| break : Instructiune (*sintaxa pentru break*)
 | body_functie : string -> Instructiune -> Instructiune. (*pentru functii*)
 
 (*Notatii folosite pentru instructiuni*)
@@ -97,7 +97,7 @@ Notation " // A // " := (comment A) (at level 99).
 Notation "f( X ) {{ S }} " := (body_functie X S) (at level 90).
 Notation " A ? B ~ C" := (ifthenelse A B C) (at level 65). (*sintaxa operator "?"*)
 Notation "'switch'  'case' ( A ) ( B ) ( 'case' ( C )  ( D ) 'default' ( E ))" := (ifthenelse A B (ifthenelse C D E)) (at level 66).
-(*sintaxa switch*)
+(*sintaxa instructiune switch*)
 (* switch(x) 
   case 1: x++
   case 2: x--
