@@ -1,48 +1,48 @@
 (*Sintaxa*)
 Require Import Strings.String.
 Local Open Scope string_scope.
+Local Open Scope list_scope.
 Scheme Equality for string.
-(*Require Import Ascii.*)
-Require Export Bool.
-Require Import List.
-Import ListNotations.
-Open Scope list_scope.
 
 Inductive Natural :=
 | errnat : Natural
 | num : nat -> Natural.
+Require Export Bool.
 
 Inductive Boolean :=
 | errbool : Boolean
 | boolean : bool -> Boolean.
 
-(*Inductive string : Set :=
-| str : ascii -> string -> string
-| emptystring : string.
-Definition string_dec : forall s1 s2 : string, {s1 = s2} + {s1 <> s2}.
+Inductive SChar :=
+| str : string -> SChar
+| emptystring : SChar
+| errstr : SChar.
+Coercion str: string >-> SChar.
 
-Local Open Scope lazy_bool_scope.
+Check str "Andreea".
 
-Fixpoint eqb s1 s2 : bool :=
- match s1, s2 with
- | emptystring, emptystring => true
- | str c1 s1', str c2 s2' => Ascii.eqb c1 c2 &&& eqb s1' s2'
- | _,_ => false
- end.
-Fixpoint strcat (s1 s2 : string) : string :=
-  match s1 with
-  | emptystring => s2
-  | str c s1' => str c (strcat s1' s2)
-  end.
-Fixpoint length (s : string) : nat :=
-  match s with
-  | emptytring => 0
-  | String c s' => S (length s')
-  end.
-Compute (strcat "da" "nu").
-*)
+(*Sintaxa pentru siruri de caractere*)
+Inductive strExp :=
+| sstring : SChar -> strExp
+| strvar : string -> strExp
+| strcat : strExp -> strExp -> strExp.
+
+(*Functia de concatenare*)
+Definition concat (s1 s2 : SChar) : SChar :=
+  match s1, s2 with
+    | emptystring, emptystring => emptystring
+    | emptystring, _ => s2
+    | _, emptystring => s1
+    | errstr, _ => errstr
+    | _, errstr => errstr
+    | str s1, str s2 => str (s1 ++ s2)
+end.
+Compute (concat "ana" "mere").
+
 Definition Var:= string.
 Check "x".
+Require Import List.
+Import ListNotations.
 
 (*Operatii pe stive*)
 Inductive StivaInstructiuni :=
@@ -90,8 +90,6 @@ Definition stiva2 := [
                   ].
 Compute run_instructions stiva2 env0 [].
 (* (19 + 10)*10 *)
-
-
 
 
 Coercion num: nat >-> Natural.
@@ -288,6 +286,7 @@ Compute limbaj1.
 Reserved Notation "A =[ S ]=> N" (at level 50).
 Reserved Notation "B ={ S }=> B'" (at level 55).
 Reserved Notation "X =( S )=> X'" (at level 55). 
+Reserved Notation "A -( S )-> X" (at level 55).
 
 Definition plusNat (n1 n2 : Natural) : Natural :=
   match n1, n2 with
@@ -559,3 +558,14 @@ Inductive evalStiva : StivaInstructiuni -> Env -> Env -> Prop :=
     stack' = (n1 * n2) :: stack ->
     addition =( sigma )=> sigma'
 where "c =( sigma )=> sigma'" := (evalStiva c sigma sigma').
+
+(*Semantica pentru siruri de caractere*)
+Inductive evalStr : strExp -> Env -> SChar -> Prop :=
+| e_string : forall s sigma,
+    (sstring s) -( sigma )-> s
+| e_concat : forall s1 s2 s1' s2' sigma s,
+   s1 -( sigma )-> s1' ->
+   s2 -( sigma )-> s2' ->
+    s = (strcat s1' s2') ->
+    (concat s1 s2) -(sigma)-> s
+where "A -( S )-> X" := (evalStr A S X).
