@@ -66,6 +66,7 @@ Fixpoint run_instruction (i : StivaInstructiuni)
            | _ => stack
            end
   end. 
+
 Definition env0 := fun x => if string_dec x "x" then 10 else 0.
 Compute (run_instruction (push_const 1012) env0 []).
 Fixpoint run_instructions (is' : list StivaInstructiuni)
@@ -74,7 +75,6 @@ Fixpoint run_instructions (is' : list StivaInstructiuni)
   | [] => stack
   | i :: is'' => run_instructions is'' env (run_instruction i env stack)
   end.
-
 Definition stiva1 := [
                     push_const 19 ;
                     push_var "x"
@@ -90,8 +90,6 @@ Definition stiva2 := [
                   ].
 Compute run_instructions stiva2 env0 [].
 (* (19 + 10)*10 *)
-
-
 Coercion num: nat >-> Natural.
 Coercion boolean: bool >-> Boolean.
 
@@ -490,16 +488,23 @@ Inductive eval : Instructiune -> Env -> Env -> Prop :=
     sigma' = (update sigma x (bool_type i) ) ->
     (x =b a) -{ sigma }-> sigma'
 (* (Incercare) semantica incrementare*)
+(* Eroare consta in faptul ca x este vazut ca un string si nu poate fi
+folosit cu plusNat *)
 (*| e_incr : forall a i x sigma sigma',
     a =[ sigma ]=> i ->
     i =[ sigma ]=> 1 ->    
     sigma' = (update sigma x (nat_type (plusNat x i) ) )   ->
-    ( x ++ ) -{ sigma }-> sigma' *)
+    ( x ++ ) -{ sigma }-> sigma' 
+*)
+
+(* Aici eroare imi spune ca i + 1 e de tipul AExp
+si ar trebui sa fie natural*)
 (*| e_incr_2 : forall a i x sigma sigma',
     a =[ sigma ]=> i ->
     i =[ sigma ]=> nat_type (i +' 1) ->
     sigma' = (update sigma x ( nat_type i ) ) ->
-    (x ++ ) -{ sigma }-> sigma'*)
+    (x ++ ) -{ sigma }-> sigma'
+*)
 | e_secv : forall s1 s2 sigma sigma1 sigma2,
     s1 -{ sigma }-> sigma1 ->
     s2 -{ sigma1 }-> sigma2 ->
@@ -521,6 +526,7 @@ Inductive eval : Instructiune -> Env -> Env -> Prop :=
     b ={ sigma }=> true ->
     (s ;; while b s) -{ sigma }-> sigma' ->
     while b s -{ sigma }-> sigma'
+
 (*Semantica pentru break*)
 | e_break: forall sigma,
     (break) -{ sigma }-> sigma
@@ -563,9 +569,13 @@ where "c =( sigma )=> sigma'" := (evalStiva c sigma sigma').
 Inductive evalStr : strExp -> Env -> SChar -> Prop :=
 | e_string : forall s sigma,
     (sstring s) -( sigma )-> s
-| e_concat : forall s1 s2 s1' s2' sigma s,
+(*| e_concat : forall s1 s2 s1' s2' sigma s,
    s1 -( sigma )-> s1' ->
-   s2 -( sigma )-> s2' ->
+   s2 -( sigma )-> s2' ->           
     s = (strcat s1' s2') ->
     (concat s1 s2) -(sigma)-> s
+*)
+(* Eroare la concatenare, s1 has type SChar, while it was expected to
+have type strExp*) 
 where "A -( S )-> X" := (evalStr A S X).
+
